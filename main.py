@@ -46,6 +46,19 @@ def validate_patient_input(nama, usia, gula_darah, bmi):
     return True
 
 
+def save_patient(nama, usia, gula_darah, bmi, riwayat_ortu):
+    with sqlite3.connect(DATABASE_NAME) as connection:
+        connection.execute(
+            """
+            INSERT INTO pasien (
+                nama_pasien, usia, gula_darah, bmi, riwayat_ortu, hasil_prediksi
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (nama, usia, gula_darah, bmi, riwayat_ortu, "Not evaluated")
+        )
+
+
 def main():
     initialize_database()
 
@@ -85,6 +98,27 @@ def main():
     riwayat_ortu_menu = tk.OptionMenu(form_frame, riwayat_ortu_var, "No", "Yes")
     riwayat_ortu_menu.config(width=25)
     riwayat_ortu_menu.grid(row=4, column=1, padx=5, pady=5)
+
+    def handle_save():
+        nama = nama_entry.get().strip()
+        usia = usia_entry.get().strip()
+        gula_darah = gula_darah_entry.get().strip()
+        bmi = bmi_entry.get().strip()
+        riwayat_ortu = riwayat_ortu_var.get()
+
+        if not validate_patient_input(nama, usia, gula_darah, bmi):
+            return
+
+        try:
+            save_patient(nama, int(usia), float(gula_darah), float(bmi), riwayat_ortu)
+        except sqlite3.Error as error:
+            messagebox.showerror("Database Error", str(error))
+            return
+
+        messagebox.showinfo("Saved", "Patient information saved successfully.")
+
+    save_button = tk.Button(root, text="Save Patient", command=handle_save, width=20)
+    save_button.pack(pady=15)
 
     root.mainloop()
 
