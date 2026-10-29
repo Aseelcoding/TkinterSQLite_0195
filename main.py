@@ -1,6 +1,6 @@
 import sqlite3
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 
 DATABASE_NAME = "prediksi_diabetes.db"
@@ -83,12 +83,84 @@ def save_patient(nama, usia, gula_darah, bmi, riwayat_ortu, hasil_prediksi):
         )
 
 
+def get_patient_records():
+    with sqlite3.connect(DATABASE_NAME) as connection:
+        return connection.execute(
+            """
+            SELECT id, nama_pasien, usia, gula_darah, bmi,
+                   riwayat_ortu, hasil_prediksi
+            FROM pasien
+            ORDER BY id DESC
+            """
+        ).fetchall()
+
+
+def show_patient_records():
+    records_window = tk.Toplevel()
+    records_window.title("Patient Records")
+    records_window.geometry("900x350")
+
+    columns = ("id", "nama", "usia", "gula", "bmi", "riwayat", "hasil")
+    records_table = ttk.Treeview(
+        records_window,
+        columns=columns,
+        show="headings"
+    )
+
+    headings = {
+        "id": "ID",
+        "nama": "Patient Name",
+        "usia": "Age",
+        "gula": "Blood Sugar",
+        "bmi": "BMI",
+        "riwayat": "Family History",
+        "hasil": "Estimated Risk"
+    }
+
+    for column, heading in headings.items():
+        records_table.heading(column, text=heading)
+
+    records_table.column("id", width=45, anchor="center")
+    records_table.column("nama", width=160)
+    records_table.column("usia", width=60, anchor="center")
+    records_table.column("gula", width=100, anchor="center")
+    records_table.column("bmi", width=70, anchor="center")
+    records_table.column("riwayat", width=110, anchor="center")
+    records_table.column("hasil", width=220)
+
+    scrollbar = ttk.Scrollbar(
+        records_window,
+        orient="vertical",
+        command=records_table.yview
+    )
+    records_table.configure(yscrollcommand=scrollbar.set)
+    records_table.pack(side="left", fill="both", expand=True, padx=(10, 0), pady=10)
+    scrollbar.pack(side="right", fill="y", padx=(0, 10), pady=10)
+
+    try:
+        records = get_patient_records()
+    except sqlite3.Error as error:
+        messagebox.showerror("Database Error", str(error), parent=records_window)
+        records_window.destroy()
+        return
+
+    for record in records:
+        records_table.insert("", "end", values=record)
+
+    if not records:
+        messagebox.showinfo(
+            "Patient Records",
+            "No patient records have been saved yet.",
+            parent=records_window
+        )
+
+
 def main():
     initialize_database()
 
     root = tk.Tk()
     root.title("Diabetes Risk Prediction")
-    root.geometry("500x480")
+    root.geometry("500x520")
     root.resizable(False, False)
 
     title_label = tk.Label(
@@ -150,7 +222,15 @@ def main():
         )
 
     save_button = tk.Button(root, text="Save Patient and Estimate Risk", command=handle_save, width=28)
-    save_button.pack(pady=15)
+    save_button.pack(pady=10)
+
+    records_button = tk.Button(
+        root,
+        text="View Patient Records",
+        command=show_patient_records,
+        width=28
+    )
+    records_button.pack(pady=5)
 
     note_label = tk.Label(
         root,
