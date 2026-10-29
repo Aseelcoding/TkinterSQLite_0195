@@ -1,5 +1,6 @@
 import sqlite3
 import tkinter as tk
+from tkinter import messagebox
 
 
 DATABASE_NAME = "prediksi_diabetes.db"
@@ -20,6 +21,29 @@ def initialize_database():
             )
             """
         )
+
+
+def validate_patient_input(nama, usia, gula_darah, bmi):
+    if not nama.strip():
+        messagebox.showerror("Invalid Input", "Please enter the patient's name.")
+        return False
+
+    try:
+        age_value = int(usia)
+        sugar_value = float(gula_darah)
+        bmi_value = float(bmi)
+    except ValueError:
+        messagebox.showerror(
+            "Invalid Input",
+            "Age must be a whole number. Blood sugar and BMI must be numbers."
+        )
+        return False
+
+    if age_value <= 0 or sugar_value <= 0 or bmi_value <= 0:
+        messagebox.showerror("Invalid Input", "Age, blood sugar, and BMI must be greater than zero.")
+        return False
+
+    return True
 
 
 def main():
