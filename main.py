@@ -27,7 +27,7 @@ def main():
 
     root = tk.Tk()
     root.title("Diabetes Risk Prediction")
-    root.geometry("500x350")
+    root.geometry("500x450")
     root.resizable(False, False)
 
     title_label = tk.Label(
@@ -35,14 +35,32 @@ def main():
         text="Diabetes Risk Prediction",
         font=("Arial", 16, "bold")
     )
-    title_label.pack(pady=30)
+    title_label.pack(pady=15)
 
-    info_label = tk.Label(
-        root,
-        text="Enter patient information to estimate diabetes risk.",
-        font=("Arial", 10)
-    )
-    info_label.pack(pady=10)
+    form_frame = tk.Frame(root)
+    form_frame.pack(pady=5)
+
+    tk.Label(form_frame, text="Patient Name:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+    nama_entry = tk.Entry(form_frame, width=30)
+    nama_entry.grid(row=0, column=1, padx=5, pady=5)
+
+    tk.Label(form_frame, text="Age:").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+    usia_entry = tk.Entry(form_frame, width=30)
+    usia_entry.grid(row=1, column=1, padx=5, pady=5)
+
+    tk.Label(form_frame, text="Blood Sugar:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+    gula_darah_entry = tk.Entry(form_frame, width=30)
+    gula_darah_entry.grid(row=2, column=1, padx=5, pady=5)
+
+    tk.Label(form_frame, text="BMI:").grid(row=3, column=0, sticky="w", padx=5, pady=5)
+    bmi_entry = tk.Entry(form_frame, width=30)
+    bmi_entry.grid(row=3, column=1, padx=5, pady=5)
+
+    tk.Label(form_frame, text="Family History:").grid(row=4, column=0, sticky="w", padx=5, pady=5)
+    riwayat_ortu_var = tk.StringVar(value="No")
+    riwayat_ortu_menu = tk.OptionMenu(form_frame, riwayat_ortu_var, "No", "Yes")
+    riwayat_ortu_menu.config(width=25)
+    riwayat_ortu_menu.grid(row=4, column=1, padx=5, pady=5)
 
     root.mainloop()
 
