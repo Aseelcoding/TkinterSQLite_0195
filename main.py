@@ -1,7 +1,30 @@
+import sqlite3
 import tkinter as tk
 
 
+DATABASE_NAME = "prediksi_diabetes.db"
+
+
+def initialize_database():
+    with sqlite3.connect(DATABASE_NAME) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pasien (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nama_pasien TEXT NOT NULL,
+                usia INTEGER NOT NULL,
+                gula_darah REAL NOT NULL,
+                bmi REAL NOT NULL,
+                riwayat_ortu TEXT NOT NULL,
+                hasil_prediksi TEXT NOT NULL
+            )
+            """
+        )
+
+
 def main():
+    initialize_database()
+
     root = tk.Tk()
     root.title("Diabetes Risk Prediction")
     root.geometry("500x350")
