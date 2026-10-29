@@ -46,7 +46,31 @@ def validate_patient_input(nama, usia, gula_darah, bmi):
     return True
 
 
-def save_patient(nama, usia, gula_darah, bmi, riwayat_ortu):
+def predict_risk(usia, gula_darah, bmi, riwayat_ortu):
+    risk_score = 0
+
+    if gula_darah >= 126:
+        risk_score += 2
+    elif gula_darah >= 100:
+        risk_score += 1
+
+    if bmi >= 30:
+        risk_score += 1
+
+    if usia >= 45:
+        risk_score += 1
+
+    if riwayat_ortu == "Yes":
+        risk_score += 1
+
+    if risk_score >= 3:
+        return "Higher estimated risk"
+    if risk_score >= 1:
+        return "Moderate estimated risk"
+    return "Lower estimated risk"
+
+
+def save_patient(nama, usia, gula_darah, bmi, riwayat_ortu, hasil_prediksi):
     with sqlite3.connect(DATABASE_NAME) as connection:
         connection.execute(
             """
@@ -55,7 +79,7 @@ def save_patient(nama, usia, gula_darah, bmi, riwayat_ortu):
             )
             VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (nama, usia, gula_darah, bmi, riwayat_ortu, "Not evaluated")
+            (nama, usia, gula_darah, bmi, riwayat_ortu, hasil_prediksi)
         )
 
 
@@ -64,7 +88,7 @@ def main():
 
     root = tk.Tk()
     root.title("Diabetes Risk Prediction")
-    root.geometry("500x450")
+    root.geometry("500x480")
     root.resizable(False, False)
 
     title_label = tk.Label(
@@ -85,7 +109,7 @@ def main():
     usia_entry = tk.Entry(form_frame, width=30)
     usia_entry.grid(row=1, column=1, padx=5, pady=5)
 
-    tk.Label(form_frame, text="Blood Sugar:").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+    tk.Label(form_frame, text="Blood Sugar (mg/dL):").grid(row=2, column=0, sticky="w", padx=5, pady=5)
     gula_darah_entry = tk.Entry(form_frame, width=30)
     gula_darah_entry.grid(row=2, column=1, padx=5, pady=5)
 
@@ -109,16 +133,32 @@ def main():
         if not validate_patient_input(nama, usia, gula_darah, bmi):
             return
 
+        age_value = int(usia)
+        sugar_value = float(gula_darah)
+        bmi_value = float(bmi)
+        hasil_prediksi = predict_risk(age_value, sugar_value, bmi_value, riwayat_ortu)
+
         try:
-            save_patient(nama, int(usia), float(gula_darah), float(bmi), riwayat_ortu)
+            save_patient(nama, age_value, sugar_value, bmi_value, riwayat_ortu, hasil_prediksi)
         except sqlite3.Error as error:
             messagebox.showerror("Database Error", str(error))
             return
 
-        messagebox.showinfo("Saved", "Patient information saved successfully.")
+        messagebox.showinfo(
+            "Estimated Result",
+            hasil_prediksi + "\n\nThis is an educational estimate, not a medical diagnosis."
+        )
 
-    save_button = tk.Button(root, text="Save Patient", command=handle_save, width=20)
+    save_button = tk.Button(root, text="Save Patient and Estimate Risk", command=handle_save, width=28)
     save_button.pack(pady=15)
+
+    note_label = tk.Label(
+        root,
+        text="Educational estimate only; not a medical diagnosis.",
+        font=("Arial", 8),
+        fg="gray"
+    )
+    note_label.pack(pady=5)
 
     root.mainloop()
 
